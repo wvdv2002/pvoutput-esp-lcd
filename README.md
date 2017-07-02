@@ -7,9 +7,9 @@ NOTE: The code may have a few rough edges and no comments at all. You are free t
 This piece of software was coded together with [Bob van der Linden](https://github.com/bobvanderlinden)
 
 Make sure you have installed the following Arduino Libraries:
-- [Adafruit-GFX-Library]
-- [Adafruit-ILI9341] library
-- [WifiManager]
+- [Adafruit-GFX-Library](https://github.com/adafruit/Adafruit-GFX-Library)
+- [Adafruit-ILI9341](https://github.com/adafruit/Adafruit_ILI9341)
+- [WifiManager]()
 - [SPIFFS]
 - [ESP8266 Sketch data upload](https://github.com/esp8266/arduino-esp8266fs-plugin)
 
