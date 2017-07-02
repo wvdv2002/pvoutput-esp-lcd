@@ -197,13 +197,6 @@ bool PVOutputClass::getStats(PvStats *out,int size)
     out->len++;
   }
   memcpy(out->endTime,status.time,sizeof(out->endTime));
-  
-  // Swapping
-  //for(int i=0;i<out->len/2;i++) {
-   // int swp = out->instantaneousPower[i];
-  //  out->instantaneousPower[i] = out->instantaneousPower[out->len-i-1];
-  //  out->instantaneousPower[out->len-i-1] = swp;
-  //}
   client.stop();
   return true;
 }

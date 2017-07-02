@@ -12,7 +12,7 @@
 #include "tftScreen.h"
 
 
-const char pvVersion[] = "PVEAZVER100";
+const char pvVersion[] = "PVLCDVER100";
 
 extern "C" {
   #include "user_interface.h"
@@ -110,12 +110,12 @@ void setupPvOutput(void)
   char systemId[8];
   if(!getApiKey(apiKey))
   {
-    setApiKey("EAZWindData");
+    setApiKey("");
     getApiKey(apiKey);
   }
   if(!getSystemID(systemId))
   {
-    setSystemID("21479");
+    setSystemID("");
     getSystemID(systemId);
   }
   

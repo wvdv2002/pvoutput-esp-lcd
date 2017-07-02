@@ -24,7 +24,6 @@
 
 void tftSetup(void);
 void tftShowLedscircle(void);
-void tftShowEAZWind(void);
 void tftShowPVOutput(void);
 void tftDrawGraphScreen(void);
 void tftShowStartUpText(char*,uint8_t);

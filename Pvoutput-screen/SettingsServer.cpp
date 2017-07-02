@@ -6,7 +6,7 @@
 const char* pvhostname = "pvmon";
 const char* pvspiffspath = "/pvespupdate/pvupdatespiffs.php";
 const char* pvfirmwarepath = "/pvespupdate/pvupdatespiffs.php";
-const char* pvupdateserver = "www.ledscircle.com";
+const char* pvupdateserver = "";
 
 ESP8266WebServer server(80);
 MDNSResponder mdns;

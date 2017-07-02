@@ -150,11 +150,6 @@ void tftShowStartUpText(char* text,uint8_t row){
   tft.print(text);
 }
 
-void tftShowEAZWind(void)
-{
-  tft.fillScreen(ILI9341_BLACK);
-  bmpDraw("/eazlogo320.bmp", 0,101);
-}
 void tftShowPVOutput(void)
 {
   tft.fillScreen(ILI9341_BLACK);
@@ -164,7 +159,6 @@ void tftShowPVOutput(void)
 void tftSetup(void){
     tft.begin();
     tft.setRotation(1);
-
 }
 
 void tftDrawGraphScreen(void)
@@ -286,21 +280,6 @@ int scaleForGraph(uint16_t graphHeight,uint16_t graphWidth, const int* data_in,u
         Serial.print(",");             
       }
       Serial.println("");
-/*
-    }
-    else
-    {
-      for(i=0;i<aLength;i++)
-      {
-        data_out[i+(GRAPHWIDTH-aLength)] = map(data_in[i],0,maxy,0,GRAPHHEIGHT);      
-      }
-      for(i=0;i<(GRAPHWIDTH-aLength);i++)
-      {
-        data_out[i] = 0;
-      }
-    }   
-*/
-    
     return maxy; 
 }
 
