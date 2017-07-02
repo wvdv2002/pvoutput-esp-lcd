@@ -82,7 +82,7 @@ void handle_brightness(void)
 {
     String aStr = server.arg("brightness");
     int brightness = aStr.toInt();
-    if ((brightness >= 0) && (brightness <= 100))
+    if ((brightness >= 0) && (brightness <= 1023))
     {
       analogWrite(0,brightness);
     }
