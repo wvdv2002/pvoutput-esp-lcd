@@ -22,7 +22,7 @@ MOSI 		GPIO13
 SCK 		GPIO14
 CS 		GPIO15
 DC 		GPIO2
-Backlight Brightness GPIO0
+Backlight GPIO0
 
 When the esp8266 is flashed and the sketch data is uploaded to the SPIFFS, follow the instructions on the LCD to connect to the ESP8266. The first time the used WifiManager library will setup an Acces point, connect to it and use the setup to set up the Wifi network to connect to. After the connection is established. Setup and view the needed parameters, by going to the corresponding link:
 
