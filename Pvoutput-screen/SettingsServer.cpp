@@ -1,6 +1,7 @@
 #include "SettingsServer.h"
 #include <ESP8266httpUpdate.h>
 #include <ESP8266HTTPUpdateServer.h>
+#include "tftScreen.h"
 
 const char* pvhostname = "pvmon";
 const char* pvspiffspath = "/pvespupdate/pvupdatespiffs.php";
@@ -14,7 +15,7 @@ ESP8266HTTPUpdateServer httpUpdater;
 extern void pvStatsTask(void);
 extern void nextScreen(void);
 extern const String pvVersion;
-
+void showWifiConfigAPMessage(void);
 
 void CheckOTAServer(void)
 {
@@ -68,8 +69,34 @@ void handle_sysid(void){
 }
 
 void handle_wifisetup(void){
-  setupWiFi();
+  server.send(200, "text/plain", "Resetting WiFi settings and rebooting, connect to PV_setup_AP to setup new wifi connection.");
+  WiFiManager wifiManager;
+  wifiManager.resetSettings();
+
+  delay(1000);
+    //reset and try again, or maybe put it to deep sleep
+    ESP.reset();
 }
+
+void handle_brightness(void)
+{
+    String aStr = server.arg("brightness");
+    int brightness = aStr.toInt();
+    if ((brightness >= 0) && (brightness <= 100))
+    {
+      analogWrite(0,brightness);
+    }
+    server.send(200, "text/plain", "brightness set");
+}
+
+
+void handle_reboot(void)
+{
+  server.send(200, "text/plain", "restarting.......");
+  delay(600);
+  ESP.reset();
+}
+   
 
 void startSettingsServer(void){
   ArduinoOTA.setHostname(pvhostname);
@@ -81,6 +108,8 @@ void startSettingsServer(void){
   server.on("/refresh", handle_refresh);
   server.on("/systemid",handle_sysid);
   server.on("/wifisetup",handle_wifisetup);
+  server.on("/reboot", handle_reboot);
+  server.on("/brightness",handle_brightness);
   server.begin();
   Serial.println("HTTP server started");
   
@@ -89,27 +118,32 @@ void startSettingsServer(void){
   }
   Serial.println("mDNS responder started");
 } 
-   
+
 void settingsServerTask(void){
   ArduinoOTA.handle();
   server.handleClient();
   mdns.update();
 }
 
+void showWifiConfigAPMessage(WiFiManager *myWiFiManager)
+{
+    tftShowStartUpText("No WiFi, Connect",0);
+    tftShowStartUpText("to PV_setup_AP",1);
+    tftShowStartUpText("hotspot and go to",2); 
+    char ipstr[15];
+    WiFi.softAPIP().toString().toCharArray(ipstr,sizeof(ipstr));   
+    tftShowStartUpText(ipstr,3);    
+}
 void setupWiFi(void){
-  char customSystemIDStr[PVSYSTEMID_LENGTH];
-  char customPvApiKeyStr[PVAPIKEY_LENGTH];
     // The extra parameters to be configured (can be either global or just in the setup)
   // After connecting, parameter.getValue() will get you the configured value
   // id/name placeholder/prompt default length
-  WiFiManagerParameter custom_systemid("systemid", "000000", customSystemIDStr, PVSYSTEMID_LENGTH);
-  WiFiManagerParameter custom_pvapikey("PV-apikey", "1234", customPvApiKeyStr, PVAPIKEY_LENGTH);
-  
   WiFiManager wifiManager;
   wifiManager.setMinimumSignalQuality();
-  wifiManager.addParameter(&custom_systemid);
-  wifiManager.addParameter(&custom_pvapikey);
-  if (!wifiManager.autoConnect("PV_setup_AP")) {
+  wifiManager.setAPCallback(showWifiConfigAPMessage);
+  wifiManager.setConfigPortalTimeout(180);
+  wifiManager.setConnectTimeout(30);
+  if (!wifiManager.autoConnect("PV_setup_AP")) { 
     Serial.println("failed to connect and hit timeout");
     delay(3000);
     //reset and try again, or maybe put it to deep sleep
@@ -117,9 +151,6 @@ void setupWiFi(void){
     delay(5000);
   }
   
-  strcpy(customSystemIDStr, custom_systemid.getValue());
-  strcpy(customPvApiKeyStr, custom_pvapikey.getValue());
-//  strcpy(blynk_token, custom_blynk_token.getValue());
   Serial.println("local ip");
   Serial.println(WiFi.localIP());
   Serial.println(WiFi.gatewayIP());

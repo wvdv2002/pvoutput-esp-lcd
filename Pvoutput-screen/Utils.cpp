@@ -1,5 +1,5 @@
 #include "Utils.h"
-
+#include "ctype.h"
 bool setApiKey(String Key){
   Serial.println("Write key:"+Key);
   if(Key.length() < PVAPIKEY_LENGTH)
@@ -31,7 +31,7 @@ bool getApiKey(char * apiKey)
  uint8_t aChar;
  do{
    aChar = EEPROM.read(PERSISTENT_STORAGE_APIKEY_START+i);
-   if( aChar)
+   if( isalnum(aChar))
    {
      apiKey[i] = aChar;
      Serial.write(aChar);
@@ -40,6 +40,11 @@ bool getApiKey(char * apiKey)
    {
      apiKey[i] = '\0';
      Serial.println("");
+     if (aChar!='\0')
+     {
+      return false;
+      Serial.println("NoSystemId");
+     }
      break;
    }
  }
@@ -79,14 +84,18 @@ bool getSystemID(char * systemId)
  uint8_t aChar;
  do{
    aChar = EEPROM.read(PERSISTENT_STORAGE_SYSTEMID_START+i);
-   if( aChar)
+   if(isdigit(aChar))
    {
      systemId[i] = aChar;
      Serial.write(aChar);
    }
    else
    {
-     systemId[i] = '\0';
+    systemId[i] = '\0';
+    if (aChar!='\0'){
+     return false;
+     Serial.println("NoSystemId");
+    }
      Serial.println("");
      break;
    }

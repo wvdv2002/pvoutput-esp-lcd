@@ -22,7 +22,7 @@ extern "C" {
 void setupPvOutput(void);
 void pvStatsTask(void);
 void nextScreen(void);
-
+void getAllPvStats(void);
 
 Ticker nextScreenTicker;
 Ticker pvTaskTicker;
@@ -34,20 +34,36 @@ bool updatePvOutputData = 0;
 
 void setup(void)
 {
-  delay(100);
+  analogWrite(0,0);
+  delay(10);
   Serial.begin(115200);
   Serial.println("start"); 
   tftSetup();
- // Connect to WiFi network
+  tftShowLedscircle();
+  delay(1000);
+  tftShowPVOutput();
+  tftShowStartUpText("Trying WiFi",0); 
   setupWiFi();
+  
+  tftShowStartUpText("Wifi Connected",0); 
+  delay(100);
+  char ipstr[15];
+   WiFi.localIP().toString().toCharArray(ipstr,sizeof(ipstr));
+  tftShowStartUpText(ipstr,1); 
+  delay(2000);
+  tftShowStartUpText("Trying to get ",0); 
+  tftShowStartUpText("pvoutput data ",1); 
   utilStart();
   startSettingsServer();
-  setupPvOutput();
+  setupPvOutput();  
+ // Connect to WiFi network
   pvTaskTicker.attach(300,pvStatsTask);
-  nextScreenTicker.attach(10,nextScreen);
+  nextScreenTicker.attach(30,nextScreen);
   Serial.print("Heap free: ");  
   Serial.println(system_get_free_heap_size());
-  pvStatsTask(); 
+  
+  getAllPvStats();
+  tftDrawGraphScreen();
   nextScreen();
 }
 
@@ -57,21 +73,26 @@ void loop(void)
   settingsServerTask();
   delay(1);
 
+  if(updatePvOutputData)
+  {
+    updatePvOutputData = 0;
+    getAllPvStats();
+  }
   if(updateScreen)
   {
     updateScreen = 0;
     screenTask();
   }
-  if(updatePvOutputData)
-  {
-    updatePvOutputData = 0;
+} 
+
+void getAllPvStats(void)
+{
     if(!PVOutput.getStats(&pvStats,GRAPHWIDTH)) {
       Serial.println("no stats received error");
     }
     PVOutput.getStatus(&pvStatus);
     PVOutput.getPvSystemService(&pvSystemService);
-  }
-} 
+}
 
 void nextScreen(void)
 {
