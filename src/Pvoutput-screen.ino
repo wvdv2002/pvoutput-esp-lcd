@@ -7,7 +7,6 @@
 #include <ESP8266mDNS.h>
 #include <EEPROM.h>
 #include "SettingsServer.h"
-#include "pvoutput.h"
 #include <Ticker.h>
 #include "tftScreen.h"
 
@@ -19,18 +18,18 @@ extern "C" {
 }
 
 
-void setupPvOutput(void);
-void pvStatsTask(void);
+void setupWindpark(void);
+void windparkStatsTask(void);
 void nextScreen(void);
-void getAllPvStats(void);
+void getAllWindparkStats(void);
 
 Ticker nextScreenTicker;
-Ticker pvTaskTicker;
-PvStats pvStats;
-PvStatus pvStatus;
-PvSystemService pvSystemService;
+Ticker windparkTaskTicker;
+parkStats pvStats;
+parkStatus pvStatus;
+ParkDescription windParkDescription;
 bool updateScreen = 0;
-bool updatePvOutputData = 0;
+bool updateParkdata = 0;
 
 void setup(void)
 {

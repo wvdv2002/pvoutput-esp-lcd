@@ -1,6 +1,6 @@
 # PVOUTPUT ESP8266 LCD.
 
-Using this repository and an ILI9341 320*240 LCD you can create your own [Pvoutput](www.pvoutput.org) monitor screen. This great website is used to log data coming from green energy systems. This screen can then be put in your livingroom to keep a close eye on how much green energy you are generating.
+Using this repository and an ILI9341 320*240 LCD you can create your own [Pvoutput](www.pvoutput.org) monitor screen. This great website is used to log data coming from green energy systems. This screen can than be put in your livingroom to keep a close eye on how much green energy you are generating.
 
 #Usage
 NOTE: The code may have a few rough edges and no comments at all. You are free to ask any questions though.
