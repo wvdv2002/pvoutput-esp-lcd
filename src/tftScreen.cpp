@@ -14,110 +14,111 @@ uint8_t graphLine[GRAPHWIDTH];
 uint8_t graphLine_old[GRAPHWIDTH];
 int graphLineOldLength=0;
 void setupSPIFFS(void);
-void bmpDraw(char *filename, uint8_t x, uint16_t y);
+void bmpDraw(char *filename, int16_t x, int16_t y);
 uint16_t read16(File &f);
 uint32_t read32(File &f);
 
-extern PvStats pvStats;
-extern PvStatus pvStatus;
-extern PvSystemService pvSystemService;
+extern float hourValues[];
+extern String parkName;
+extern int totalDay;
+
 //--------------------------------------------
 
-void plotLines()
+void plotLines(int dataLen)
 {
   Serial.print("stat Amount:");
-  Serial.println(pvStats.len);
-  scaleForGraph(GRAPHHEIGHT,GRAPHWIDTH,pvStats.instantaneousPower,graphLine,pvStats.len);
-  if (graphLineOldLength==pvStats.len)
+  Serial.println(24);
+  scaleForGraph(GRAPHHEIGHT,GRAPHWIDTH,hourValues,graphLine,dataLen);
+  if (graphLineOldLength==dataLen)
   {
-    tftDrawOverOldGraph(GRAPHBORDER,GRAPH_Y_START,GRAPHBORDER+GRAPHWIDTH,GRAPHHEIGHT+GRAPH_Y_START,ILI9341_BLACK,graphLine_old,ILI9341_GREEN,graphLine,pvStats.len);      
+    tftDrawOverOldGraph(GRAPHBORDER,GRAPH_Y_START,GRAPHBORDER+GRAPHWIDTH,GRAPHHEIGHT+GRAPH_Y_START,ILI9341_BLACK,graphLine_old,ILI9341_GREEN,graphLine,dataLen);
   }
   else if (graphLineOldLength>0)
   {
     tftDrawGraph(GRAPHBORDER,GRAPH_Y_START,GRAPHBORDER+GRAPHWIDTH,GRAPHHEIGHT+GRAPH_Y_START,ILI9341_BLACK,graphLine_old,graphLineOldLength);
   }
-  tftDrawGraph(GRAPHBORDER,GRAPH_Y_START,GRAPHBORDER+GRAPHWIDTH,GRAPHHEIGHT+GRAPH_Y_START,ILI9341_GREEN,graphLine,pvStats.len);  
-  graphLineOldLength=pvStats.len;
+  tftDrawGraph(GRAPHBORDER,GRAPH_Y_START,GRAPHBORDER+GRAPHWIDTH,GRAPHHEIGHT+GRAPH_Y_START,ILI9341_GREEN,graphLine,dataLen);
+  graphLineOldLength=dataLen;
   memcpy(graphLine_old,graphLine,graphLineOldLength);
-} 
+}
 
 
 
 void fakeDataForGraph(int samples)
 {
   int i;
-  pvStats.len=random(0,samples);
+//  pvStats.len=random(0,samples);
   for(i=0;i<REQUEST_SIZE;i++)
   {
-    pvStats.instantaneousPower[i] = random(0,20000);
-  } 
+//    pvStats.instantaneousPower[i] = random(0,20000);
+  }
 }
 
 void screenTask(void)
 {
   //Clear dataplaces
   //tft.fillRect(GRAPHBORDER,GRAPH_Y_START,GRAPHWIDTH,200-GRAPH_Y_START,ILI9341_BLACK);
-  plotLines();
+  plotLines(24);
   char shortSystemName[9];
 
   tft.setTextSize(TIME_TEXTSIZE);
   tft.setCursor(2,SCREENHEIGTH-TIME_TEXTSIZE*8);
-  tft.print(pvStats.startTime);
+ // tft.print(pvStats.startTime);
 
   tft.setCursor(TEXT_START_X-5*11-5,SCREENHEIGTH-TIME_TEXTSIZE*8);
-  tft.print(pvStats.endTime);
-  
+//  tft.print(pvStats.endTime);
+
   tft.setCursor(TEXT_START_X+12,SYSTEMNAME_START_Y);
   tft.setTextSize(SYSTEMNAME_TEXTSIZE);
-  memcpy(shortSystemName,pvSystemService.systemName,sizeof(shortSystemName)-1);
+  memcpy(shortSystemName,parkName.c_str(),sizeof(shortSystemName)-1);
   shortSystemName[sizeof(shortSystemName)-1]=0;
   tft.print(shortSystemName);
-  
- 
-  if (pvStatus.instantaneousPower<10000)
+
+
+  if (hourValues[0]<10000)
     tft.setTextSize(4);
   else
     tft.setTextSize(3);
- 
+
   tft.setCursor(TEXT_START_X+12,CURRENTWATT_START_Y+2*8+2*SPACE_BETWEEN_STUFF);
-  tft.print(pvStatus.instantaneousPower);
-  if (pvStatus.instantaneousPower<1000)
+  tft.print((int)hourValues[0]);
+  if (hourValues[0]<1000)
   {
-    tft.print(" ");  
+    tft.print(" ");
   }
-  if (pvStatus.instantaneousPower<100)
+  if (hourValues[0]<100)
   {
-    tft.print(" ");  
+    tft.print(" ");
   }
-  if (pvStatus.instantaneousPower<10)
+  if (hourValues[0]<10)
   {
-    tft.print(" ");  
+    tft.print(" ");
   }
-    
+
   tft.setCursor(TEXT_START_X+12,TOTALLYGENERATED_START_Y+2*8+2*SPACE_BETWEEN_STUFF);
   tft.setTextSize(4);
-  if (pvStatus.energyGeneration<1000)
+  if (totalDay<1000)
   {
-    tft.print(pvStatus.energyGeneration);
+    tft.print(totalDay);
     tft.setCursor(TEXT_START_X+12,TOTALLYGENERATED_START_Y+6*8+3*SPACE_BETWEEN_STUFF);
     tft.setTextSize(2);
     tft.print("Wh  ");
   }
   else
   {
-     tft.print(pvStatus.energyGeneration/1000);
-     if (pvStatus.energyGeneration<100000)
+     tft.print(totalDay/1000);
+     if (totalDay<10000)
      {
         tft.print(".");
-        tft.print((pvStatus.energyGeneration%1000)/100); 
+        tft.print(((int)totalDay%1000)/100);
      }
      tft.setCursor(TEXT_START_X+12,TOTALLY_GENERATED_KWH_START);
      tft.setTextSize(2);
-     tft.print("kWh");  
+     tft.print("kWh");
    }
-}   
-  
-  
+}
+
+
 
 void tftShowLedscircle(void)
 {
@@ -129,22 +130,22 @@ void tftShowLedscircle(void)
     delay(15);
   }
   setupSPIFFS();
-  tft.setTextColor(ILI9341_BLACK,ILI9341_WHITE);  
+  tft.setTextColor(ILI9341_BLACK,ILI9341_WHITE);
   tft.setTextSize(3);
   tft.setCursor(0,25);
   tft.print("   Windmill");
-  delay(200); 
+  delay(200);
   tft.setCursor(0,50);
   tft.print("   Monitor");
-  delay(200); 
+  delay(200);
   tft.setCursor(0,75);
   tft.print("   By:");
-  delay(200); 
+  delay(200);
   bmpDraw("/V2_320width.bmp", 0,108);
 }
 
 void tftShowStartUpText(char* text,uint8_t row){
-  tft.setTextColor(ILI9341_WHITE,ILI9341_BLACK);  
+  tft.setTextColor(ILI9341_WHITE,ILI9341_BLACK);
   tft.setTextSize(3);
   tft.setCursor(0,row*25);
   tft.print(text);
@@ -164,27 +165,27 @@ void tftSetup(void){
 void tftDrawGraphScreen(void)
 {
   tft.fillScreen(ILI9341_BLACK);
-  tftDrawGraphTimeLegend(GRAPHBORDER,GRAPH_Y_START,GRAPHBORDER+GRAPHWIDTH,220,ILI9341_WHITE,0,24,0,1200); 
-  
+  tftDrawGraphTimeLegend(GRAPHBORDER,GRAPH_Y_START,GRAPHBORDER+GRAPHWIDTH,220,ILI9341_WHITE,0,24,0,1200);
+
   tft.drawRect(TEXT_START_X+1,0,SCREENWIDTH-1-TEXT_START_X,SCREENHEIGTH-1,INTERFACECOLOR); //all encompassing rectangle for text.
-  
+
   tft.drawFastHLine(TEXT_START_X+1,SYSTEMNAME_DIVIDER_Y,SCREENWIDTH-1-TEXT_START_X,INTERFACECOLOR); //first divider in text (under name)
   tft.drawFastHLine(TEXT_START_X+1,TOTALLYGENERATED_DIVIDER_Y,SCREENWIDTH-1-TEXT_START_X,INTERFACECOLOR); //second divider in text (current generated)
-  
+
   tft.setTextSize(2);
   tft.setCursor(TEXT_START_X+12,CURRENTWATT_START_Y);
   tft.print("Cur. gen");
   tft.setCursor(TEXT_START_X+12,(CURRENTWATT_START_Y+3*SPACE_BETWEEN_STUFF+6*8));
   tft.setTextSize(2);
   tft.print("Watt");
-  
+
   tft.setCursor(TEXT_START_X+12,TOTALLYGENERATED_START_Y);
   tft.print("Tot. gen");
   bmpDraw("/ledscircle105.bmp", TEXT_START_X+12,TOTALLY_GENERATED_KWH_START+22);
-}  
+}
 
 
- 
+
 void tftDrawOverOldGraph(uint16_t x0,uint16_t y0,uint16_t x1,uint16_t y1,uint16_t aOldColor,uint8_t oldData[],uint16_t aColor,uint8_t data[],uint16_t datasize)
 {
    int x;
@@ -205,7 +206,7 @@ void tftDrawOverOldGraph(uint16_t x0,uint16_t y0,uint16_t x1,uint16_t y1,uint16_
 }
 
 
- 
+
 void tftDrawGraph(uint16_t x0,uint16_t y0,uint16_t x1,uint16_t y1,uint16_t aColor,uint8_t data[],uint16_t datasize)
 {
    int x;
@@ -225,14 +226,14 @@ void tftDrawGraphTimeLegend(uint16_t x0, uint16_t y0, uint16_t x1,uint16_t y1, u
   //X line
   tft.drawLine(x0-2,y0,x0-2,y1,aColor);
   tft.drawLine(x0-1,y0,x0-1,y1,aColor);
-  
+
   //Y Line
   tft.drawLine(x0-2,y1+1,x1,y1+1,aColor);
   tft.drawLine(x0-2,y1+2,x1,y1+2,aColor);
 
   String text = "Watt";
   tft.setTextSize(2);
-  tft.setTextColor(ILI9341_WHITE,ILI9341_BLACK);  
+  tft.setTextColor(ILI9341_WHITE,ILI9341_BLACK);
   for(i=0;i<4;i++)
   {
     tft.setCursor(x0-14, y0+i*16);
@@ -243,7 +244,7 @@ void tftDrawGraphTimeLegend(uint16_t x0, uint16_t y0, uint16_t x1,uint16_t y1, u
 //  tft.print(text);
 }
 
-int scaleForGraph(uint16_t graphHeight,uint16_t graphWidth, const int* data_in,uint8_t* data_out,int aLength)
+int scaleForGraph(uint16_t graphHeight,uint16_t graphWidth, float* data_in,uint8_t* data_out,int aLength)
 {
     int maxy=data_in[0];
     int miny=data_in[0];
@@ -259,12 +260,12 @@ int scaleForGraph(uint16_t graphHeight,uint16_t graphWidth, const int* data_in,u
         miny=data_in[i];
      }
     }
-    
+
     Serial.print("maxy: ");
     Serial.println(maxy);
     Serial.print("miny: ");
     Serial.println(miny);
-    
+
     if (aLength>graphWidth)
     {
       aLength=graphWidth;
@@ -275,12 +276,12 @@ int scaleForGraph(uint16_t graphHeight,uint16_t graphWidth, const int* data_in,u
     }
       for(i=0;i<aLength;i++)
       {
-        data_out[i] = map(data_in[i],0,maxy,0,graphHeight); 
+        data_out[aLength-i-1] = map(data_in[i],0,maxy,0,graphHeight);
         Serial.print(data_out[i]);
-        Serial.print(",");             
+        Serial.print(",");
       }
       Serial.println("");
-    return maxy; 
+    return maxy;
 }
 
 void setupSPIFFS(void){
@@ -289,11 +290,17 @@ void setupSPIFFS(void){
 
 
 
-//These routines are taken from adafruit example SPITFTBITMAP: 
-//https://learn.adafruit.com/adafruit-2-dot-8-color-tft-touchscreen-breakout-v2/bitmaps-spi-mode
+// This function opens a Windows Bitmap (BMP) file and
+// displays it at the given coordinates.  It's sped up
+// by reading many pixels worth of data at a time
+// (rather than pixel by pixel).  Increasing the buffer
+// size takes more of the Arduino's precious RAM but
+// makes loading a little faster.  20 pixels seems a
+// good balance.
+
 #define BUFFPIXEL 20
 
-void bmpDraw(char *filename, uint8_t x, uint16_t y) {
+void bmpDraw(char *filename, int16_t x, int16_t y) {
 
   File     bmpFile;
   int      bmpWidth, bmpHeight;   // W+H in pixels
@@ -304,7 +311,7 @@ void bmpDraw(char *filename, uint8_t x, uint16_t y) {
   uint8_t  buffidx = sizeof(sdbuffer); // Current position in sdbuffer
   boolean  goodBmp = false;       // Set to true on valid header parse
   boolean  flip    = true;        // BMP is stored bottom-to-top
-  int      w, h, row, col;
+  int      w, h, row, col, x2, y2, bx1, by1;
   uint8_t  r, g, b;
   uint32_t pos = 0, startTime = millis();
 
@@ -353,45 +360,65 @@ void bmpDraw(char *filename, uint8_t x, uint16_t y) {
         }
 
         // Crop area to be loaded
-        w = bmpWidth;
-        h = bmpHeight;
-        if((x+w-1) >= tft.width())  w = tft.width()  - x;
-        if((y+h-1) >= tft.height()) h = tft.height() - y;
-
-        // Set TFT address window to clipped image bounds
-        tft.setAddrWindow(x, y, x+w-1, y+h-1);
-
-        for (row=0; row<h; row++) { // For each scanline...
-
-          // Seek to start of scan line.  It might seem labor-
-          // intensive to be doing this on every line, but this
-          // method covers a lot of gritty details like cropping
-          // and scanline padding.  Also, the seek only takes
-          // place if the file position actually needs to change
-          // (avoids a lot of cluster math in SD library).
-          if(flip) // Bitmap is stored bottom-to-top order (normal BMP)
-            pos = bmpImageoffset + (bmpHeight - 1 - row) * rowSize;
-          else     // Bitmap is stored top-to-bottom
-            pos = bmpImageoffset + row * rowSize;
-          if(bmpFile.position() != pos) { // Need seek?
-            bmpFile.seek(pos,SeekSet);
-            buffidx = sizeof(sdbuffer); // Force buffer reload
+        x2 = x + bmpWidth  - 1; // Lower-right corner
+        y2 = y + bmpHeight - 1;
+        if((x2 >= 0) && (y2 >= 0)) { // On screen?
+          w = bmpWidth; // Width/height of section to load/display
+          h = bmpHeight;
+          bx1 = by1 = 0; // UL coordinate in BMP file
+          if(x < 0) { // Clip left
+            bx1 = -x;
+            x   = 0;
+            w   = x2 + 1;
           }
+          if(y < 0) { // Clip top
+            by1 = -y;
+            y   = 0;
+            h   = y2 + 1;
+          }
+          if(x2 >= tft.width())  w = tft.width()  - x; // Clip right
+          if(y2 >= tft.height()) h = tft.height() - y; // Clip bottom
 
-          for (col=0; col<w; col++) { // For each pixel...
-            // Time to read more pixel data?
-            if (buffidx >= sizeof(sdbuffer)) { // Indeed
-              bmpFile.read(sdbuffer, sizeof(sdbuffer));
-              buffidx = 0; // Set index to beginning
+          // Set TFT address window to clipped image bounds
+          tft.startWrite(); // Requires start/end transaction now
+          tft.setAddrWindow(x, y, w, h);
+
+          for (row=0; row<h; row++) { // For each scanline...
+
+            // Seek to start of scan line.  It might seem labor-
+            // intensive to be doing this on every line, but this
+            // method covers a lot of gritty details like cropping
+            // and scanline padding.  Also, the seek only takes
+            // place if the file position actually needs to change
+            // (avoids a lot of cluster math in SD library).
+            if(flip) // Bitmap is stored bottom-to-top order (normal BMP)
+              pos = bmpImageoffset + (bmpHeight - 1 - (row + by1)) * rowSize;
+            else     // Bitmap is stored top-to-bottom
+              pos = bmpImageoffset + (row + by1) * rowSize;
+            pos += bx1 * 3; // Factor in starting column (bx1)
+            if(bmpFile.position() != pos) { // Need seek?
+              tft.endWrite(); // End TFT transaction
+              bmpFile.seek(pos);
+              buffidx = sizeof(sdbuffer); // Force buffer reload
+              tft.startWrite(); // Start new TFT transaction
             }
-
-            // Convert pixel from BMP to TFT format, push to display
-            b = sdbuffer[buffidx++];
-            g = sdbuffer[buffidx++];
-            r = sdbuffer[buffidx++];
-            tft.pushColor(tft.color565(r,g,b));
-          } // end pixel
-        } // end scanline
+            for (col=0; col<w; col++) { // For each pixel...
+              // Time to read more pixel data?
+              if (buffidx >= sizeof(sdbuffer)) { // Indeed
+                tft.endWrite(); // End TFT transaction
+                bmpFile.read(sdbuffer, sizeof(sdbuffer));
+                buffidx = 0; // Set index to beginning
+                tft.startWrite(); // Start new TFT transaction
+              }
+              // Convert pixel from BMP to TFT format, push to display
+              b = sdbuffer[buffidx++];
+              g = sdbuffer[buffidx++];
+              r = sdbuffer[buffidx++];
+              tft.writePixel(tft.color565(r,g,b));
+            } // end pixel
+          } // end scanline
+          tft.endWrite(); // End last TFT transaction
+        } // end onscreen
         Serial.print(F("Loaded in "));
         Serial.print(millis() - startTime);
         Serial.println(" ms");
@@ -422,4 +449,3 @@ uint32_t read32(File &f) {
   ((uint8_t *)&result)[3] = f.read(); // MSB
   return result;
 }
-

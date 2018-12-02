@@ -28,7 +28,7 @@ void tftShowPVOutput(void);
 void tftDrawGraphScreen(void);
 void tftShowStartUpText(char*,uint8_t);
 void screenTask(void);
-int scaleForGraph(uint16_t graphWidth, uint16_t graphHeight,const int*,uint8_t*,int);
+int scaleForGraph(uint16_t graphWidth, uint16_t graphHeight,float*,uint8_t*,int);
 void tftDrawGraph(uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint8_t*,uint16_t); //returns maximum y (from old data)
 void tftDrawOverOldGraph(uint16_t,uint16_t,uint16_t,uint16_t,uint16_t,uint8_t*,uint16_t,uint8_t*,uint16_t); //returns maximum y (from old data)
 void tftDrawGraphTimeLegend(uint16_t, uint16_t, uint16_t,uint16_t, uint16_t, uint8_t, uint8_t, uint16_t, uint16_t);

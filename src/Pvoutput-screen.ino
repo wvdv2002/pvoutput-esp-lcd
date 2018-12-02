@@ -9,7 +9,10 @@
 #include "SettingsServer.h"
 #include <Ticker.h>
 #include "tftScreen.h"
+#include "theThings.h"
 
+#include "pvstats.h"
+#include "pvstatus.h"
 
 const char pvVersion[] = "PVLCDVER100";
 
@@ -17,6 +20,9 @@ extern "C" {
   #include "user_interface.h"
 }
 
+PvStats pvStats;
+PvSystemService pvSystemService;
+PvStatus pvStatus;
 
 void setupWindpark(void);
 void windparkStatsTask(void);
@@ -25,72 +31,88 @@ void getAllWindparkStats(void);
 
 Ticker nextScreenTicker;
 Ticker windparkTaskTicker;
-parkStats pvStats;
-parkStatus pvStatus;
-ParkDescription windParkDescription;
+
+
 bool updateScreen = 0;
-bool updateParkdata = 0;
+bool updateParkData = 0;
+String parkName;
+float hourValues[24];
+int totalDay;
+TheThings theThings;
 
 void setup(void)
 {
   analogWrite(0,0);
   delay(10);
   Serial.begin(115200);
-  Serial.println("start"); 
+  Serial.println("start");
   tftSetup();
   tftShowLedscircle();
   delay(1000);
   tftShowPVOutput();
-  tftShowStartUpText("Trying WiFi",0); 
+  tftShowStartUpText("Trying WiFi",0);
   setupWiFi();
-  
-  tftShowStartUpText("Wifi Connected",0); 
+
+  tftShowStartUpText("Wifi Connected",0);
   delay(100);
   char ipstr[15];
    WiFi.localIP().toString().toCharArray(ipstr,sizeof(ipstr));
-  tftShowStartUpText(ipstr,1); 
+  tftShowStartUpText(ipstr,1);
   delay(2000);
-  tftShowStartUpText("Trying to get ",0); 
-  tftShowStartUpText("pvoutput data ",1); 
+  tftShowStartUpText("Trying to get ",0);
+  tftShowStartUpText("Output data ",1);
   utilStart();
   startSettingsServer();
-  setupPvOutput();  
+  setupTheThings();
  // Connect to WiFi network
-  pvTaskTicker.attach(300,pvStatsTask);
+  windparkTaskTicker.attach(300,pvStatsTask);
   nextScreenTicker.attach(30,nextScreen);
-  Serial.print("Heap free: ");  
+  Serial.print("Heap free: ");
   Serial.println(system_get_free_heap_size());
+
   
-  getAllPvStats();
   tftDrawGraphScreen();
   nextScreen();
+  getAllParkStats();
 }
 
- 
+
 void loop(void)
 {
   settingsServerTask();
   delay(1);
 
-  if(updatePvOutputData)
+  if(updateParkData)
   {
-    updatePvOutputData = 0;
-    getAllPvStats();
+    updateParkData = 0;
+    getAllParkStats();
   }
   if(updateScreen)
   {
     updateScreen = 0;
     screenTask();
   }
-} 
+}
 
-void getAllPvStats(void)
+void getAllParkStats(void)
 {
-    if(!PVOutput.getStats(&pvStats,GRAPHWIDTH)) {
+    float tempDay;
+    if(!theThings.getThingsInfo()) {
       Serial.println("no stats received error");
+      return;
     }
-    PVOutput.getStatus(&pvStatus);
-    PVOutput.getPvSystemService(&pvSystemService);
+    theThings.getThingNames();
+    parkName = theThings.getThingName(0);
+    theThings.getThingKwhList(hourValues,24,0);
+    tempDay = 0.0f;
+    for(int i=0;i<24;i++){
+      hourValues[i] *= 1000.0;
+      tempDay += hourValues[i];
+      Serial.print(hourValues[i]);
+      Serial.print(',');
+    }
+    totalDay = (int)tempDay;
+    Serial.println("");
 }
 
 void nextScreen(void)
@@ -100,13 +122,13 @@ void nextScreen(void)
 
 void pvStatsTask(void)
 {
-  updatePvOutputData = 1;
+  updateParkData = 1;
 }
 
-void setupPvOutput(void)
+void setupTheThings(void)
 {
-  char apiKey[41];
-  char systemId[8];
+  char apiKey[APIKEY_LENGTH];
+  char systemId[SYSTEMID_LENGTH];
   if(!getApiKey(apiKey))
   {
     setApiKey("");
@@ -117,9 +139,8 @@ void setupPvOutput(void)
     setSystemID("");
     getSystemID(systemId);
   }
-  
+
   Serial.print("Apikey: ");Serial.println(apiKey);
   Serial.print("Systemid: ");Serial.println(systemId);
-  PVOutput.begin(apiKey, systemId);
+  theThings.begin(apiKey, systemId);
 }
-

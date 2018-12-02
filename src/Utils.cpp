@@ -2,7 +2,7 @@
 #include "ctype.h"
 bool setApiKey(String Key){
   Serial.println("Write key:"+Key);
-  if(Key.length() < PVAPIKEY_LENGTH)
+  if(Key.length() < APIKEY_LENGTH)
  {
    int i; 
    for(i=0;i<Key.length();i++)
@@ -48,8 +48,8 @@ bool getApiKey(char * apiKey)
      break;
    }
  }
- while((i++)<PVAPIKEY_LENGTH);
- if(i==PVAPIKEY_LENGTH)
+ while((i++)<APIKEY_LENGTH);
+ if(i==APIKEY_LENGTH)
  {
   apiKey[i-1] = '\0';
  return false;
@@ -60,7 +60,7 @@ bool getApiKey(char * apiKey)
 bool setSystemID(String ID)
 {
   Serial.println("Write system ID:" + ID);
-  if(ID.length() < PVSYSTEMID_LENGTH)
+  if(ID.length() < SYSTEMID_LENGTH)
   {
    int i; 
    for(i=0;i<ID.length();i++)
@@ -100,8 +100,8 @@ bool getSystemID(char * systemId)
      break;
    }
  }
- while((i++) < PVSYSTEMID_LENGTH);
-  if(i==PVSYSTEMID_LENGTH)
+ while((i++) < SYSTEMID_LENGTH);
+  if(i==SYSTEMID_LENGTH)
  {
   systemId[i-1] = '\0';
   return false;

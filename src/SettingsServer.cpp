@@ -46,7 +46,7 @@ void handle_apikey(void){
   if (apiKey.length()>0){
     if(!setApiKey(apiKey)){Serial.println("Writing failed");};
   }
-  char persistentApiKey[PVAPIKEY_LENGTH + 1];  
+  char persistentApiKey[APIKEY_LENGTH + 1];  
   getApiKey(persistentApiKey);
   server.send(200, "text/plain", persistentApiKey);
 }
@@ -62,7 +62,7 @@ void handle_sysid(void){
   if (sysid.length()>0){
     if(!setSystemID(sysid)){Serial.println("Writing failed");};
   }
-  char persistentsysid[PVSYSTEMID_LENGTH + 1];  
+  char persistentsysid[SYSTEMID_LENGTH + 1];  
   getSystemID(persistentsysid);
   server.send(200, "text/plain", persistentsysid);
  
